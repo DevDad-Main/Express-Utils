@@ -5,11 +5,11 @@ A collection of reusable utilities for Express.js applications, including error 
 ## Installation
 
 ```bash
-npm install express-utils
+npm install devdad-express-utils
 # or
-yarn add express-utils
+yarn add devdad-express-utils
 # or
-pnpm add express-utils
+pnpm add devdad-express-utils
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ pnpm add express-utils
 
 ```typescript
 import express from "express";
-import { errorHandler, AppError } from "express-utils";
+import { errorHandler, AppError } from "devdad-express-utils";
 
 const app = express();
 
@@ -34,7 +34,7 @@ throw new AppError("Something went wrong", 400);
 ### Async Route Wrapping
 
 ```typescript
-import { catchAsync } from "express-utils";
+import { catchAsync } from "devdad-express-utils";
 
 const getUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
@@ -47,7 +47,7 @@ app.get("/users", getUsers);
 ### Custom Error Class
 
 ```typescript
-import { AppError } from "express-utils";
+import { AppError } from "devdad-express-utils";
 
 throw new AppError("Validation failed", 400, ["Email is required"]);
 ```
@@ -55,10 +55,10 @@ throw new AppError("Validation failed", 400, ["Email is required"]);
 #### JavaScript Usage
 
 ```javascript
-const { AppError, catchAsync, errorHandler } = require("express-utils");
+const { AppError, catchAsync, errorHandler } = require("devdad-express-utils");
 
 // Or with ES modules
-import { AppError, catchAsync, errorHandler } from "express-utils";
+import { AppError, catchAsync, errorHandler } from "devdad-express-utils";
 ```
 
 ## Error Handling Patterns
@@ -89,7 +89,7 @@ throw new AppError("Database connection failed", 500);
 
 ```javascript
 const express = require("express");
-const { AppError, catchAsync, errorHandler } = require("express-utils");
+const { AppError, catchAsync, errorHandler } = require("devdad-express-utils");
 
 const app = express();
 
@@ -110,10 +110,10 @@ app.use(errorHandler);
 #### JavaScript Usage
 
 ```javascript
-const { AppError, catchAsync, errorHandler } = require("express-utils");
+const { AppError, catchAsync, errorHandler } = require("devdad-express-utils");
 
 // Or with ES modules
-import { AppError, catchAsync, errorHandler } from "express-utils";
+import { AppError, catchAsync, errorHandler } from "devdad-express-utils";
 ```
 
 ## API

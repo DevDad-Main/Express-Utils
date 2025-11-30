@@ -1,5 +1,5 @@
 {
-  "name": "express-utils",
+  "name": "devdad-express-utils",
   "version": "1.0.0",
   "description": "Reusable Express.js utilities for error handling, async wrapping, and more",
   "main": "dist/index.js",
@@ -14,9 +14,10 @@
     "express",
     "utilities",
     "error-handling",
-    "typescript"
+    "typescript",
+    "javascript"
   ],
-  "author": "Your Name",
+  "author": "Oliver Metz",
   "license": "ISC",
   "dependencies": {
     "express": "^5.1.0"
