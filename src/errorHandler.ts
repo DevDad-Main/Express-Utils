@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "./AppError.js";
 
+/**
+ * Interface for error response objects.
+ */
 interface ErrorResponse {
   status: string;
   message: string;
@@ -9,6 +12,11 @@ interface ErrorResponse {
   error?: any;
 }
 
+/**
+ * Sends detailed error information in development mode.
+ * @param {any} err - The error object.
+ * @param {Response} res - The Express response object.
+ */
 const sendErrorDev = (err: any, res: Response) => {
   res.status(err.statusCode || 500).json({
     status: err.status || "error",
@@ -19,6 +27,11 @@ const sendErrorDev = (err: any, res: Response) => {
   });
 };
 
+/**
+ * Sends error information in production mode.
+ * @param {AppError} err - The AppError instance.
+ * @param {Response} res - The Express response object.
+ */
 const sendErrorProd = (err: AppError, res: Response) => {
   // Operational, trusted error → send to client
   if (err.isOperational) {
@@ -37,6 +50,13 @@ const sendErrorProd = (err: AppError, res: Response) => {
   }
 };
 
+/**
+ * Global error handler middleware for Express.
+ * @param {any} err - The error object.
+ * @param {Request} req - The Express request object.
+ * @param {Response} res - The Express response object.
+ * @param {NextFunction} next - The Express next function.
+ */
 const errorHandler = (
   err: any,
   req: Request,
