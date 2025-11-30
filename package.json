@@ -1,0 +1,31 @@
+{
+  "name": "express-utils",
+  "version": "1.0.0",
+  "description": "Reusable Express.js utilities for error handling, async wrapping, and more",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "express",
+    "utilities",
+    "error-handling",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "typescript": "^5.9.3"
+  },
+  "files": [
+    "dist"
+  ]
+}
