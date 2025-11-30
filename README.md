@@ -52,15 +52,6 @@ import { AppError } from "devdad-express-utils";
 throw new AppError("Validation failed", 400, ["Email is required"]);
 ```
 
-#### JavaScript Usage
-
-```javascript
-const { AppError, catchAsync, errorHandler } = require("devdad-express-utils");
-
-// Or with ES modules
-import { AppError, catchAsync, errorHandler } from "devdad-express-utils";
-```
-
 ## Error Handling Patterns
 
 ### Using AppError

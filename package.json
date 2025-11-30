@@ -18,6 +18,10 @@
     "javascript"
   ],
   "author": "Oliver Metz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Devdad-Main/Express-Utils.git"
+  },
   "license": "ISC",
   "dependencies": {
     "express": "^5.1.0"
