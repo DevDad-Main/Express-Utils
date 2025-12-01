@@ -52,6 +52,37 @@ import { AppError } from "devdad-express-utils";
 throw new AppError("Validation failed", 400, ["Email is required"]);
 ```
 
+### Response Formatting
+
+Standardize API responses with consistent JSON structure.
+
+```typescript
+import { sendSuccess, sendError, sendPaginated } from "devdad-express-utils";
+
+// Success response
+sendSuccess(res, { id: 1, name: 'John' }, 'User fetched', 200);
+
+// Error response
+sendError(res, 'User not found', 404);
+
+
+```
+
+### Authentication Middleware
+
+JWT-based authentication wrapper.
+
+```typescript
+import { requireAuth } from "devdad-express-utils";
+
+const authMiddleware = requireAuth({ secret: process.env.JWT_SECRET });
+
+app.get('/profile', authMiddleware, (req, res) => {
+  // req.user contains decoded JWT
+  res.json(req.user);
+});
+```
+
 ## Error Handling Patterns
 
 ### Using AppError
@@ -131,6 +162,32 @@ Express error handling middleware with detailed logging in development.
 
 ```typescript
 errorHandler(err: any, req: Request, res: Response, next: NextFunction) => void
+```
+
+### sendSuccess
+
+Sends a standardized success response.
+
+```typescript
+sendSuccess(res: Response, data: any, message?: string, statusCode?: number) => void
+```
+
+### sendError
+
+Sends a standardized error response.
+
+```typescript
+sendError(res: Response, message: string, statusCode?: number, data?: any) => void
+```
+
+
+
+### requireAuth
+
+Middleware for JWT authentication.
+
+```typescript
+requireAuth(options: { secret: string, algorithms?: Algorithm[] }) => (req, res, next) => void
 ```
 
 ## Development
