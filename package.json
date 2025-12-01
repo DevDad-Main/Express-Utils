@@ -1,6 +1,6 @@
 {
   "name": "devdad-express-utils",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Reusable Express.js utilities for error handling, async wrapping, and more",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
