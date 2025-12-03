@@ -1,6 +1,6 @@
 {
   "name": "devdad-express-utils",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "description": "Reusable Express.js utilities for error handling, async wrapping, and more",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,7 +29,8 @@
     "@types/mongoose": "^5.11.96",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^9.0.0"
+    "mongoose": "^9.0.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",

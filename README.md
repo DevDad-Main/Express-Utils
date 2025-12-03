@@ -1,6 +1,6 @@
 # Express Utils
 
-A collection of reusable utilities for Express.js applications, including error handling, async route wrapping, custom error classes, and MongoDB connection management.
+A collection of reusable utilities for Express.js applications, including error handling, async route wrapping, custom error classes, MongoDB connection management, and Winston-based logging.
 
 ## Installation
 
@@ -97,6 +97,33 @@ await connectDB();
 const status = getDBStatus();
 console.log(status); // { isConnected: true, readyState: 1, host: '...', name: '...' }
 ```
+
+### Logging
+
+Winston-based logger with configurable service name and environment-aware transports.
+
+```typescript
+import { logger } from "devdad-express-utils";
+
+// Log messages at different levels
+logger.info("User logged in", { userId: 123 });
+logger.error("Database connection failed", { error: err.message });
+logger.debug("Processing request", { requestId: "abc-123" });
+```
+
+#### Configuration
+
+- **Service Name**: Set `SERVICE_NAME` environment variable to customize the service name in logs (defaults to "express-utils")
+- **Log Level**: "debug" in development, "info" in production
+- **Transports**:
+  - **Development**: Console (colored) + error.log + combined.log files
+  - **Production**: Console only (suitable for platforms like Railway)
+
+#### Log Files
+
+In development, logs are written to:
+- `error.log`: Error level and above
+- `combined.log`: All log levels
 
 ## Error Handling Patterns
 
@@ -219,6 +246,14 @@ Gets the current MongoDB connection status.
 
 ```typescript
 getDBStatus() => { isConnected: boolean; readyState: number; host: string; name: string; }
+```
+
+### logger
+
+Winston logger instance with JSON formatting, timestamps, and error stack traces.
+
+```typescript
+logger: winston.Logger
 ```
 
 ## Development

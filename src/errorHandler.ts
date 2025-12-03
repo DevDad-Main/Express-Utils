@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "./AppError.js";
+import { logger } from "./logger.js";
 
 /**
  * Interface for error response objects.
@@ -42,7 +43,7 @@ const sendErrorProd = (err: AppError, res: Response) => {
     });
   } else {
     // Unknown error → hide details
-    console.error("ERROR", err);
+    logger.error("Unknown error occurred", err);
     res.status(500).json({
       status: "error",
       message: "Something went wrong!",
@@ -66,7 +67,7 @@ const errorHandler = (
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
   // Add this for Extra In-Depth Error Logging
-  console.error("Error details:", {
+  logger.error("Error details", {
     message: err.message,
     statusCode: err.statusCode,
     errors: err.errors,
