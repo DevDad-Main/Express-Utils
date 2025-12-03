@@ -1,6 +1,6 @@
 # Express Utils
 
-A collection of reusable utilities for Express.js applications, including error handling, async route wrapping, and custom error classes.
+A collection of reusable utilities for Express.js applications, including error handling, async route wrapping, custom error classes, and MongoDB connection management.
 
 ## Installation
 
@@ -81,6 +81,21 @@ app.get('/profile', authMiddleware, (req, res) => {
   // req.user contains decoded JWT
   res.json(req.user);
 });
+```
+
+### Database Connection
+
+MongoDB connection utility with automatic reconnection and retry logic.
+
+```typescript
+import { connectDB, getDBStatus } from "devdad-express-utils";
+
+// Connect to MongoDB (ensure MONGO_URI is set in environment)
+await connectDB();
+
+// Check connection status
+const status = getDBStatus();
+console.log(status); // { isConnected: true, readyState: 1, host: '...', name: '...' }
 ```
 
 ## Error Handling Patterns
@@ -188,6 +203,22 @@ Middleware for JWT authentication.
 
 ```typescript
 requireAuth(options: { secret: string, algorithms?: Algorithm[] }) => (req, res, next) => void
+```
+
+### connectDB
+
+Connects to MongoDB with retry logic and automatic reconnection.
+
+```typescript
+connectDB() => Promise<void>
+```
+
+### getDBStatus
+
+Gets the current MongoDB connection status.
+
+```typescript
+getDBStatus() => { isConnected: boolean; readyState: number; host: string; name: string; }
 ```
 
 ## Development

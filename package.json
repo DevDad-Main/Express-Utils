@@ -26,14 +26,18 @@
   },
   "license": "ISC",
   "dependencies": {
+    "@types/mongoose": "^5.11.96",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^9.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongodb-memory-server": "^1.8.0",
     "@types/supertest": "^6.0.3",
     "@vitest/ui": "^4.0.14",
+    "mongodb-memory-server": "^10.3.0",
     "supertest": "^7.1.4",
     "typescript": "^5.9.3",
     "vitest": "^4.0.14"
