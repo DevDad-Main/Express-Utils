@@ -60,27 +60,10 @@ Standardize API responses with consistent JSON structure.
 import { sendSuccess, sendError, sendPaginated } from "devdad-express-utils";
 
 // Success response
-sendSuccess(res, { id: 1, name: 'John' }, 'User fetched', 200);
+sendSuccess(res, { id: 1, name: "John" }, "User fetched", 200);
 
 // Error response
-sendError(res, 'User not found', 404);
-
-
-```
-
-### Authentication Middleware
-
-JWT-based authentication wrapper.
-
-```typescript
-import { requireAuth } from "devdad-express-utils";
-
-const authMiddleware = requireAuth({ secret: process.env.JWT_SECRET });
-
-app.get('/profile', authMiddleware, (req, res) => {
-  // req.user contains decoded JWT
-  res.json(req.user);
-});
+sendError(res, "User not found", 404);
 ```
 
 ### Database Connection
@@ -122,6 +105,7 @@ logger.debug("Processing request", { requestId: "abc-123" });
 #### Log Files
 
 In development, logs are written to:
+
 - `error.log`: Error level and above
 - `combined.log`: All log levels
 
@@ -222,16 +206,6 @@ Sends a standardized error response.
 sendError(res: Response, message: string, statusCode?: number, data?: any) => void
 ```
 
-
-
-### requireAuth
-
-Middleware for JWT authentication.
-
-```typescript
-requireAuth(options: { secret: string, algorithms?: Algorithm[] }) => (req, res, next) => void
-```
-
 ### connectDB
 
 Connects to MongoDB with retry logic and automatic reconnection.
@@ -253,7 +227,7 @@ getDBStatus() => { isConnected: boolean; readyState: number; host: string; name:
 Winston logger instance with JSON formatting, timestamps, and error stack traces.
 
 ```typescript
-logger: winston.Logger
+logger: winston.Logger;
 ```
 
 ## Development
