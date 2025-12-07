@@ -18,19 +18,20 @@ interface ErrorResponse {
  * @param {any} data - Response data.
  * @param {string} [message='Success'] - Response message.
  * @param {number} [statusCode=200] - HTTP status code.
+ * @returns {Response} The Express response object for chaining.
  */
 export const sendSuccess = (
   res: Response,
   data: any,
   message: string = "Success",
   statusCode: number = 200,
-): void => {
+): Response => {
   const response: SuccessResponse = {
     status: "success",
     message,
     data,
   };
-  res.status(statusCode).json(response);
+  return res.status(statusCode).json(response);
 };
 
 /**

@@ -62,6 +62,11 @@ import { sendSuccess, sendError, sendPaginated } from "devdad-express-utils";
 // Success response
 sendSuccess(res, { id: 1, name: "John" }, "User fetched", 200);
 
+// Chain additional response methods
+sendSuccess(res, { id: 1, name: "John" })
+  .cookie("session", "abc123")
+  .setHeader("X-Custom", "value");
+
 // Error response
 sendError(res, "User not found", 404);
 ```
@@ -192,10 +197,10 @@ errorHandler(err: any, req: Request, res: Response, next: NextFunction) => void
 
 ### sendSuccess
 
-Sends a standardized success response.
+Sends a standardized success response. Returns the Response object for method chaining.
 
 ```typescript
-sendSuccess(res: Response, data: any, message?: string, statusCode?: number) => void
+sendSuccess(res: Response, data: any, message?: string, statusCode?: number) => Response
 ```
 
 ### sendError
