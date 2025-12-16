@@ -87,14 +87,14 @@ class DatabaseConnection {
     }
   }
 
-/**
- * Handles connection errors by retrying the connection up to MAX_RETRIES times.
- * Uses exponential backoff for retry intervals.
- */
+  /**
+   * Handles connection errors by retrying the connection up to MAX_RETRIES times.
+   * Uses exponential backoff for retry intervals.
+   */
   private async handleConnectionError(): Promise<void> {
     if (this.retryCount < MAX_RETRIES) {
       this.retryCount++;
-      
+
       // Calculate exponential backoff with jitter
       const exponentialDelay = Math.min(
         INITIAL_RETRY_INTERVAL * Math.pow(2, this.retryCount - 1),
@@ -102,7 +102,7 @@ class DatabaseConnection {
       );
       const jitter = Math.random() * 1000; // Add up to 1 second of random jitter
       const delay = exponentialDelay + jitter;
-      
+
       console.log(
         `Retrying connection... Attempt ${this.retryCount} of ${MAX_RETRIES} (waiting ${Math.round(delay)}ms)`,
       );
@@ -116,7 +116,7 @@ class DatabaseConnection {
         `3. Network connectivity between containers`,
         `4. Environment variables are correctly set`
       );
-      
+
       // Only exit in production, allow recovery in development
       if (process.env.NODE_ENV === 'production') {
         process.exit(1);
@@ -126,10 +126,10 @@ class DatabaseConnection {
     }
   }
 
-/**
- * Handles disconnection events by attempting to reconnect if not already connected.
- * Resets retry count for fresh reconnection attempts.
- */
+  /**
+   * Handles disconnection events by attempting to reconnect if not already connected.
+   * Resets retry count for fresh reconnection attempts.
+   */
   private async handleDisconnection(): Promise<void> {
     if (!this.isConnected) {
       console.log("Attempting to reconnect to MongoDB...");
@@ -152,10 +152,10 @@ class DatabaseConnection {
     }
   }
 
-/**
- * Gets the current connection status.
- * @returns An object containing connection status information.
- */
+  /**
+   * Gets the current connection status.
+   * @returns An object containing connection status information.
+   */
   getConnectionStatus(): {
     isConnected: boolean;
     readyState: number;
