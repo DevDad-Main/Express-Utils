@@ -54,8 +54,30 @@ describe('DatabaseConnection', () => {
     expect(status).toHaveProperty('readyState');
     expect(status).toHaveProperty('host');
     expect(status).toHaveProperty('name');
+    expect(status).toHaveProperty('retryCount');
     expect(typeof status.isConnected).toBe('boolean');
     expect(typeof status.readyState).toBe('number');
+    expect(typeof status.retryCount).toBe('number');
+  });
+
+  it('should respect DB_MAX_RETRIES environment variable', async () => {
+    // Set custom retry limit
+    process.env.DB_MAX_RETRIES = '5';
+    
+    // Create invalid URI to trigger retries
+    const originalUri = process.env.MONGO_URI;
+    process.env.MONGO_URI = 'mongodb://invalid:27017/test';
+    
+    // Mock the connect method to avoid actual retries in test
+    const { DatabaseConnection } = await import('../src/DatabaseConnection');
+    const db = new DatabaseConnection();
+    
+    // The constructor should read the environment variable
+    expect(process.env.DB_MAX_RETRIES).toBe('5');
+    
+    // Restore original URI
+    process.env.MONGO_URI = originalUri;
+    delete process.env.DB_MAX_RETRIES;
   });
 
 

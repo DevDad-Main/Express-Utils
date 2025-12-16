@@ -73,18 +73,36 @@ sendError(res, "User not found", 404);
 
 ### Database Connection
 
-MongoDB connection utility with automatic reconnection and retry logic.
+MongoDB connection utility with automatic reconnection, exponential backoff, and configurable retry logic.
 
 ```typescript
-import { connectDB, getDBStatus } from "devdad-express-utils";
+import { connectDB, getDBStatus, resetDBConnection } from "devdad-express-utils";
 
 // Connect to MongoDB (ensure MONGO_URI is set in environment)
 await connectDB();
 
 // Check connection status
 const status = getDBStatus();
-console.log(status); // { isConnected: true, readyState: 1, host: '...', name: '...' }
+console.log(status); // { isConnected: true, readyState: 1, host: '...', name: '...', retryCount: 0 }
+
+// Manually reset and retry (useful after Docker container restarts)
+await resetDBConnection();
 ```
+
+#### Environment Variables
+
+- **MONGO_URI**: MongoDB connection string (required)
+- **DB_MAX_RETRIES**: Maximum connection retry attempts (default: 10)
+- **DB_RETRY_INTERVAL**: Initial retry interval in milliseconds (default: 3000)
+- **NODE_ENV**: Set to 'production' to exit after max retries, 'development' to keep process alive
+
+#### Retry Behavior
+
+- **Exponential backoff**: Retry intervals increase exponentially (3s → 6s → 12s → 24s → 30s max)
+- **Random jitter**: Adds up to 1 second of random delay to prevent thundering herd
+- **Docker-friendly**: Higher default retry count (10) accommodates container startup times
+- **Development mode**: Process stays alive after max retries for manual recovery
+- **Production mode**: Process exits after max retries to allow container restart
 
 ### Logging
 
@@ -224,7 +242,15 @@ connectDB() => Promise<void>
 Gets the current MongoDB connection status.
 
 ```typescript
-getDBStatus() => { isConnected: boolean; readyState: number; host: string; name: string; }
+getDBStatus() => { isConnected: boolean; readyState: number; host: string; name: string; retryCount: number; }
+```
+
+### resetDBConnection
+
+Manually resets retry count and attempts reconnection. Useful for recovering from Docker container restarts.
+
+```typescript
+resetDBConnection() => Promise<void>
 ```
 
 ### logger

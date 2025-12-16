@@ -2,13 +2,20 @@ import mongoose from "mongoose";
 
 /**
  * Maximum number of connection retry attempts
+ * Can be overridden with DB_MAX_RETRIES environment variable
  */
-const MAX_RETRIES = 3;
+const MAX_RETRIES = parseInt(process.env.DB_MAX_RETRIES || '10');
 
 /**
- * Interval between retry attempts in milliseconds
+ * Initial interval between retry attempts in milliseconds
+ * Can be overridden with DB_RETRY_INTERVAL environment variable
  */
-const RETRY_INTERVAL = 5000; // 5 seconds
+const INITIAL_RETRY_INTERVAL = parseInt(process.env.DB_RETRY_INTERVAL || '3000'); // 3 seconds
+
+/**
+ * Maximum retry interval (caps exponential backoff)
+ */
+const MAX_RETRY_INTERVAL = 30000; // 30 seconds
 
 /**
  * Database connection class for MongoDB using Mongoose.
@@ -80,33 +87,54 @@ class DatabaseConnection {
     }
   }
 
-  /**
-   * Handles connection errors by retrying the connection up to MAX_RETRIES times.
-   * Exits the process if all retries fail.
-   */
+/**
+ * Handles connection errors by retrying the connection up to MAX_RETRIES times.
+ * Uses exponential backoff for retry intervals.
+ */
   private async handleConnectionError(): Promise<void> {
     if (this.retryCount < MAX_RETRIES) {
       this.retryCount++;
-      console.log(
-        `Retrying connection... Attempt ${this.retryCount} of ${MAX_RETRIES}`,
+      
+      // Calculate exponential backoff with jitter
+      const exponentialDelay = Math.min(
+        INITIAL_RETRY_INTERVAL * Math.pow(2, this.retryCount - 1),
+        MAX_RETRY_INTERVAL
       );
-      await new Promise((resolve) => setTimeout(resolve, RETRY_INTERVAL));
+      const jitter = Math.random() * 1000; // Add up to 1 second of random jitter
+      const delay = exponentialDelay + jitter;
+      
+      console.log(
+        `Retrying connection... Attempt ${this.retryCount} of ${MAX_RETRIES} (waiting ${Math.round(delay)}ms)`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
       return this.connect();
     } else {
       console.error(
-        `Failed to connect to MongoDB after ${MAX_RETRIES} attempts`,
+        `Failed to connect to MongoDB after ${MAX_RETRIES} attempts. Please check:`,
+        `1. Docker container is running: docker ps`,
+        `2. MongoDB is accessible: ${process.env.MONGO_URI}`,
+        `3. Network connectivity between containers`,
+        `4. Environment variables are correctly set`
       );
-      process.exit(1);
+      
+      // Only exit in production, allow recovery in development
+      if (process.env.NODE_ENV === 'production') {
+        process.exit(1);
+      } else {
+        console.log('Development mode: keeping process alive for manual retry');
+      }
     }
   }
 
-  /**
-   * Handles disconnection events by attempting to reconnect if not already connected.
-   */
-  private handleDisconnection(): void {
+/**
+ * Handles disconnection events by attempting to reconnect if not already connected.
+ * Resets retry count for fresh reconnection attempts.
+ */
+  private async handleDisconnection(): Promise<void> {
     if (!this.isConnected) {
       console.log("Attempting to reconnect to MongoDB...");
-      this.connect();
+      this.retryCount = 0; // Reset retry count for reconnection attempts
+      await this.connect();
     }
   }
 
@@ -124,22 +152,34 @@ class DatabaseConnection {
     }
   }
 
-  /**
-   * Gets the current connection status.
-   * @returns An object containing connection status information.
-   */
+/**
+ * Gets the current connection status.
+ * @returns An object containing connection status information.
+ */
   getConnectionStatus(): {
     isConnected: boolean;
     readyState: number;
     host: string;
     name: string;
+    retryCount: number;
   } {
     return {
       isConnected: this.isConnected,
       readyState: mongoose.connection.readyState,
       host: mongoose.connection.host,
       name: mongoose.connection.name,
+      retryCount: this.retryCount,
     };
+  }
+
+  /**
+   * Manually reset retry count and attempt reconnection
+   * Useful for recovering from Docker container restarts
+   */
+  async resetAndRetry(): Promise<void> {
+    console.log('Resetting connection state and retrying...');
+    this.retryCount = 0;
+    await this.connect();
   }
 }
 
@@ -149,4 +189,5 @@ const dbConnection = new DatabaseConnection();
 // Export the connect function and the instance
 export default dbConnection.connect.bind(dbConnection);
 export const getDBStatus = dbConnection.getConnectionStatus.bind(dbConnection);
+export const resetDBConnection = dbConnection.resetAndRetry.bind(dbConnection);
 export { DatabaseConnection };
