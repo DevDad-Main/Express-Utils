@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { sendSuccess, sendError, send } from "../src/responseFormatter";
+import { sendSuccess, sendError } from "../src/responseFormatter";
 import { Response } from "express";
 
 describe("responseFormatter", () => {
   describe("sendSuccess", () => {
-    it("should auto-send success response without chaining", async () => {
+    it("should send success response without callbacks", () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn().mockReturnThis(),
@@ -13,16 +13,6 @@ describe("responseFormatter", () => {
       sendSuccess(mockRes, { id: 1 }, "Success", 200);
 
       expect(mockRes.status).toHaveBeenCalledWith(200);
-      expect((mockRes as any)._responseData).toEqual({
-        status: "success",
-        success: true,
-        message: "Success",
-        data: { id: 1 },
-      });
-      
-      // Wait for setImmediate to trigger auto-send
-      await new Promise(resolve => setTimeout(resolve, 0));
-      
       expect(mockRes.json).toHaveBeenCalledWith({
         status: "success",
         success: true,
@@ -31,7 +21,7 @@ describe("responseFormatter", () => {
       });
     });
 
-    it("should allow method chaining and send manually", async () => {
+    it("should execute callbacks for chaining", () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn().mockReturnThis(),
@@ -39,12 +29,10 @@ describe("responseFormatter", () => {
         header: vi.fn().mockReturnThis(),
       } as unknown as Response;
 
-      sendSuccess(mockRes, { id: 1 }, "Success", 200)
-        .cookie("session", "abc123")
-        .header("X-Custom", "value");
-
-      // Send manually when ready
-      send(mockRes);
+      sendSuccess(mockRes, { id: 1 }, "Success", 200, [
+        (res) => res.cookie("session", "abc123"),
+        (res) => res.header("X-Custom", "value")
+      ]);
 
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.cookie).toHaveBeenCalledWith("session", "abc123");
@@ -57,25 +45,24 @@ describe("responseFormatter", () => {
       });
     });
 
-    it("should send response when send() is called", () => {
+    it("should handle empty callbacks array", () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn().mockReturnThis(),
       } as unknown as Response;
 
-      sendSuccess(mockRes, { data: "test" }, "Success");
-      send(mockRes);
+      sendSuccess(mockRes, { id: 1 }, "Success", 200, []);
 
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         status: "success",
         success: true,
         message: "Success",
-        data: { data: "test" },
+        data: { id: 1 },
       });
     });
 
-    it("should use default values and auto-send", async () => {
+    it("should use default values", () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn().mockReturnThis(),
@@ -83,9 +70,6 @@ describe("responseFormatter", () => {
 
       sendSuccess(mockRes, { data: "test" });
 
-      // Wait for auto-send
-      await new Promise(resolve => setTimeout(resolve, 0));
-
       expect(mockRes.status).toHaveBeenCalledWith(200);
       expect(mockRes.json).toHaveBeenCalledWith({
         status: "success",
@@ -94,10 +78,36 @@ describe("responseFormatter", () => {
         data: { data: "test" },
       });
     });
+
+    it("should handle multiple callbacks correctly", () => {
+      const mockRes = {
+        status: vi.fn().mockReturnThis(),
+        json: vi.fn().mockReturnThis(),
+        cookie: vi.fn().mockReturnThis(),
+        header: vi.fn().mockReturnThis(),
+        set: vi.fn().mockReturnThis(),
+      } as unknown as Response;
+
+      sendSuccess(mockRes, { token: "abc123" }, "Login successful", 200, [
+        (res) => res.cookie("authToken", "xyz789", { httpOnly: true }),
+        (res) => res.header("X-Custom", "value"),
+        (res) => res.set("Another-Header", "test")
+      ]);
+
+      expect(mockRes.cookie).toHaveBeenCalledWith("authToken", "xyz789", { httpOnly: true });
+      expect(mockRes.header).toHaveBeenCalledWith("X-Custom", "value");
+      expect(mockRes.set).toHaveBeenCalledWith("Another-Header", "test");
+      expect(mockRes.json).toHaveBeenCalledWith({
+        status: "success",
+        success: true,
+        message: "Login successful",
+        data: { token: "abc123" },
+      });
+    });
   });
 
   describe("sendError", () => {
-    it("should send error response immediately", () => {
+    it("should send error response", () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn().mockReturnThis(),
@@ -144,22 +154,6 @@ describe("responseFormatter", () => {
         success: false,
         message: "Default error",
       });
-    });
-  });
-
-  describe("send", () => {
-    it("should send the prepared response", () => {
-      const mockRes = {
-        status: vi.fn().mockReturnThis(),
-        json: vi.fn().mockReturnThis(),
-      } as unknown as Response;
-
-      // Manually set response data to test send function
-      (mockRes as any)._responseData = { test: "data" };
-      
-      send(mockRes);
-
-      expect(mockRes.json).toHaveBeenCalledWith({ test: "data" });
     });
   });
 });

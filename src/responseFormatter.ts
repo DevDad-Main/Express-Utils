@@ -53,6 +53,7 @@ export const sendSuccess = (
   data: any,
   message: string = "Success",
   statusCode: number = 200,
+  callbacks?: ((res: Response) => Response)[],
 ): Response => {
   const response: SuccessResponse = {
     status: "success",
@@ -60,40 +61,24 @@ export const sendSuccess = (
     message,
     data,
   };
-
-  // Set status and store response for later sending
+  
   res.status(statusCode);
-  (res as any)._responseData = response;
-
-  // Auto-send unless chaining is detected (using setImmediate to check)
-  setImmediate(() => {
-    if (!(res as any)._responseSent && (res as any)._responseData) {
-      (res as any)._responseSent = true;
-      res.json((res as any)._responseData);
+  
+  // Execute callbacks for chaining if provided
+  if (callbacks && callbacks.length > 0) {
+    let currentRes = res;
+    for (const callback of callbacks) {
+      if (typeof callback === 'function') {
+        currentRes = callback(currentRes);
+      }
     }
-  });
-
-  return res;
+  }
+  
+  // Send response
+  return res.json(response);
 };
 
-/**
- * Sends the prepared success response.
- * Use this only when chaining methods (.cookie(), .header(), etc.).
- * For basic usage, sendSuccess() auto-sends and you don't need this.
- *
- * @param {Response} res - Express response object.
- * @returns {void}
- *
- * @example
- * // Only needed when chaining methods
- * sendSuccess(res, data, "Success", 200)
- *   .cookie("session", "abc123")
- *   .header("X-Custom", "value");
- * send(res); // Send when ready
- */
-export const send = (res: Response): void => {
-  res.json((res as any)._responseData);
-};
+
 
 /**
  * Sends an error response immediately.

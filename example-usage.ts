@@ -1,6 +1,6 @@
-// Example usage of the updated responseFormatter with intelligent auto-sending
+// Example usage of the updated responseFormatter with callback chaining
 
-import { sendSuccess, sendError, send } from "./src/responseFormatter";
+import { sendSuccess, sendError } from "./src/responseFormatter";
 import { Response } from "express";
 
 // Example 1: Basic error usage
@@ -9,66 +9,15 @@ function basicError(res: Response) {
   // Response format: { "status": "error", "success": false, "message": "Something went wrong" }
 }
 
-// Example 2: Success with chaining (send() needed)
-function successWithChaining(res: Response) {
-  // Chain native Express methods, then send manually
-  sendSuccess(res, { userId: 123 }, "Login successful", 200)
-    .cookie("authToken", "xyz789", { httpOnly: true })
-    .header("X-Custom-Header", "some-value");
-
-  // Send the prepared response
-  send(res);
-}
-
-// Example 3: Simple success response (auto-sends - no send() needed)
-function simpleSuccess(res: Response) {
-  sendSuccess(res, { data: "test" }, "Success");
-  // Auto-sends immediately - no send() required!
-}
-
-// Example 4: Error with additional data
-function errorWithData(res: Response) {
-  sendError(res, "Validation failed", 400, {
-    errors: ["Email is required", "Password too short"],
-  });
-}
-
-// Example 5: Complex chaining scenario
-function complexChaining(res: Response) {
-  sendSuccess(
-    res,
-    {
-      user: { id: 123, name: "John" },
-      token: "abc123xyz",
-    },
-    "Authentication successful",
-    201,
-  )
-    .cookie("session", "session-abc123", {
-      httpOnly: true,
-      secure: true,
-      maxAge: 3600000,
-    })
-    .header("X-Rate-Limit-Remaining", "99")
-    .header("X-Response-Time", "45ms")
-    .cookie("refreshToken", "refresh-abc123", {
-      httpOnly: true,
-      secure: true,
-      maxAge: 86400000, // 24 hours
-    });
-
-  // Send the prepared response
-  send(res);
-}
-
-// Example 6: Login scenario
-function loginResponse(
+// Example 2: Success with callback chaining
+function successWithCallbacks(
   res: Response,
   accesstoken: string,
   refreshToken: string,
   user: any,
   HTTP_OPTIONS: any,
 ) {
+  // Use callbacks to chain response methods - should solve the timing issue!
   sendSuccess(
     res,
     {
@@ -81,45 +30,54 @@ function loginResponse(
     },
     "Login Successful",
     200,
-  )
-    .cookie("accessToken", accesstoken, HTTP_OPTIONS)
-    .cookie("refreshToken", refreshToken, HTTP_OPTIONS);
-
-  // Send the prepared response
-  send(res);
+    [
+      (res) => res.cookie("accessToken", accesstoken, HTTP_OPTIONS),
+      (res) => res.cookie("refreshToken", refreshToken, HTTP_OPTIONS),
+    ],
+  );
+  // Response sent automatically after callbacks execute!
 }
 
-/*
-Response Formats:
-
-Success Response:
-{
-  "status": "success",
-  "success": true,
-  "message": "Login successful", 
-  "data": { "userId": 123 }
+// Example 3: Simple success response (no callbacks needed)
+function simpleSuccess(res: Response) {
+  sendSuccess(res, { data: "test" }, "Success");
+  // Response sent immediately!
 }
 
-Error Response:
-{
-  "status": "error", 
-  "success": false,
-  "message": "Something went wrong",
-  "data": { "errors": ["Email is required"] }
+// Example 4: Error with additional data
+function errorWithData(res: Response) {
+  sendError(res, "Validation failed", 400, {
+    errors: ["Email is required", "Password too short"],
+  });
 }
 
-Benefits of Simple Approach:
-✅ No magic - explicit and predictable
-✅ Native Express chaining - no learning curve
-✅ No timing issues - you control when to send
-✅ Easy to test and debug
-✅ Works with all Express response methods
-✅ Clean separation of concerns
-✅ Backward compatible with existing code
-
-Usage Pattern:
-1. Prepare response with sendSuccess()
-2. Chain native Express methods (.cookie, .header, etc.)
-3. Send with send() when ready
-*/
+// Example 5: Complex callback chaining scenario
+function complexChaining(res: Response) {
+  sendSuccess(
+    res,
+    {
+      user: { id: 123, name: "John" },
+      token: "abc123xyz",
+    },
+    "Authentication successful",
+    201,
+    [
+      (res) =>
+        res.cookie("session", "session-abc123", {
+          httpOnly: true,
+          secure: true,
+          maxAge: 3600000,
+        }),
+      (res) => res.header("X-Rate-Limit-Remaining", "99"),
+      (res) => res.header("X-Response-Time", "45ms"),
+      (res) =>
+        res.cookie("refreshToken", "refresh-abc123", {
+          httpOnly: true,
+          secure: true,
+          maxAge: 86400000, // 24 hours
+        }),
+    ],
+  );
+  // All callbacks executed, then response sent!
+}
 

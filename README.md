@@ -54,19 +54,19 @@ throw new AppError("Validation failed", 400, ["Email is required"]);
 
 ### Response Formatting
 
-Standardize API responses with consistent JSON structure and intelligent auto-sending.
+Standardize API responses with consistent JSON structure and callback-based chaining.
 
 ```typescript
-import { sendSuccess, sendError, send } from "devdad-express-utils";
+import { sendSuccess, sendError } from "devdad-express-utils";
 
-// Basic success response (auto-sends - no send() needed)
+// Basic success response
 sendSuccess(res, { id: 1, name: "John" }, "User fetched", 200);
 
-// Chain native Express methods (use send() when done chaining)
-sendSuccess(res, { id: 1, name: "John" }, "User fetched", 200)
-  .cookie("session", "abc123")
-  .setHeader("X-Custom", "value");
-send(res); // Send when ready
+// Chain methods using callbacks
+sendSuccess(res, { id: 1, name: "John" }, "User fetched", 200, [
+  (res) => res.cookie("session", "abc123"),
+  (res) => res.setHeader("X-Custom", "value")
+]);
 
 // Error response (sends immediately)
 sendError(res, "User not found", 404);
@@ -257,18 +257,18 @@ errorHandler(err: any, req: Request, res: Response, next: NextFunction) => void
 
 ### sendSuccess
 
-Prepares a standardized success response and returns response object for chaining.
+Sends a standardized success response with optional callbacks for chaining response methods.
 
 ```typescript
-sendSuccess(res: Response, data: any, message?: string, statusCode?: number) => Response
+sendSuccess(res: Response, data: any, message?: string, statusCode?: number, callbacks?: Array<(res: Response) => Response>) => Response
 ```
 
 **Features:**
 - Includes `success: true` field by default
-- **Auto-sends** when no chaining detected (no `send()` needed)
-- Returns Express response object for native method chaining
-- Use `send()` when chaining methods (explicit control)
-- No magic - intelligent and predictable
+- Supports chaining via callbacks array
+- Executes callbacks before sending response
+- No timing issues - predictable order
+- Clean and explicit approach
 
 ### sendError
 
@@ -283,23 +283,7 @@ sendError(res: Response, message: string, statusCode?: number, data?: any) => vo
 - Sends response immediately (no chaining needed for errors)
 - Supports optional error data
 
-### send
 
-Sends the prepared success response from `sendSuccess`. Only needed when chaining methods.
-
-```typescript
-send(res: Response) => void
-```
-
-**Features:**
-- Sends the response prepared by `sendSuccess`
-- **Only needed when chaining** (.cookie(), .header(), etc.)
-- Basic usage: sendSuccess() auto-sends, no send() needed
-- Explicit control over when response is sent
-
-**When to Use:**
-- ❌ Basic: `sendSuccess(res, data)` → NO send() needed
-- ✅ Chaining: `sendSuccess(res, data).cookie(...)` → send() needed
 
 ### connectDB
 
