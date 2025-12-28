@@ -53,32 +53,35 @@ export const sendSuccess = (
   data: any,
   message: string = "Success",
   statusCode: number = 200,
-  callbacks?: ((res: Response) => Response)[],
+  callbacks?: ((res: Response) => void)[],
 ): Response => {
+  if (res.headersSent) return res;
+
   const response: SuccessResponse = {
     status: "success",
     success: true,
     message,
     data,
   };
-  
+
   res.status(statusCode);
-  
-  // Execute callbacks for chaining if provided
-  if (callbacks && callbacks.length > 0) {
-    let currentRes = res;
+
+  if (callbacks?.length) {
     for (const callback of callbacks) {
-      if (typeof callback === 'function') {
-        currentRes = callback(currentRes);
+      try {
+        callback(res);
+      } catch (err) {
+        console.error("sendSuccess callback error:", err);
       }
     }
   }
-  
-  // Send response
-  return res.json(response);
+
+  if (!res.headersSent) {
+    res.json(response);
+  }
+
+  return res;
 };
-
-
 
 /**
  * Sends an error response immediately.
@@ -117,4 +120,3 @@ export const sendError = (
   };
   res.status(statusCode).json(response);
 };
-
