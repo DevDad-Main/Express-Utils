@@ -15,14 +15,14 @@ interface ErrorResponse {
 }
 
 /**
- * Sends a success response and returns the response object for chaining.
- * Automatically sends the response after chaining operations complete - no extra .send() needed!
+ * Sends a success response with intelligent auto-sending behavior.
  * 
  * Features:
  * - Includes success: true field by default
- * - Supports method chaining (.cookie(), .header(), etc.)
- * - Automatically sends response after chaining completes
- * - Returns Express response object for chaining
+ * - **Auto-sends** when no chaining detected (no send() needed)
+ * - Returns Express response object for native method chaining
+ * - Use send() only when chaining methods (.cookie(), .header(), etc.)
+ * - Clean and predictable approach
  * 
  * @param {Response} res - Express response object.
  * @param {any} data - Response data.
@@ -31,15 +31,22 @@ interface ErrorResponse {
  * @returns {Response} The Express response object for chaining.
  * 
  * @example
- * // Basic usage
+ * // Basic usage (auto-sends - no send() needed)
  * sendSuccess(res, { userId: 123 }, "Login successful");
  * 
  * @example
- * // Chain methods without calling .send()
+ * // Chain methods and send manually
  * sendSuccess(res, { userId: 123 }, "Login successful", 200)
  *   .cookie("authToken", "xyz789", { httpOnly: true })
  *   .header("X-Custom", "value");
- * // Response sent automatically!
+ * send(res); // Send prepared response
+ * 
+ * @example
+ * // Your exact use case
+ * sendSuccess(res, { accesstoken, refreshToken, user }, "Login Successful", 200)
+ *   .cookie("accessToken", accesstoken, HTTP_OPTIONS)
+ *   .cookie("refreshToken", refreshToken, HTTP_OPTIONS);
+ * send(res); // Send when ready
  */
 export const sendSuccess = (
   res: Response,
@@ -54,17 +61,38 @@ export const sendSuccess = (
     data,
   };
   
+  // Set status and store response for later sending
   res.status(statusCode);
+  (res as any)._responseData = response;
   
-  // Use setImmediate to send response after current execution stack
+  // Auto-send unless chaining is detected (using setImmediate to check)
   setImmediate(() => {
-    if (!(res as any)._responseSent) {
+    if (!(res as any)._responseSent && (res as any)._responseData) {
       (res as any)._responseSent = true;
-      res.json(response);
+      res.json((res as any)._responseData);
     }
   });
   
   return res;
+};
+
+/**
+ * Sends the prepared success response. 
+ * Use this only when chaining methods (.cookie(), .header(), etc.).
+ * For basic usage, sendSuccess() auto-sends and you don't need this.
+ * 
+ * @param {Response} res - Express response object.
+ * @returns {void}
+ * 
+ * @example
+ * // Only needed when chaining methods
+ * sendSuccess(res, data, "Success", 200)
+ *   .cookie("session", "abc123")
+ *   .header("X-Custom", "value");
+ * send(res); // Send when ready
+ */
+export const send = (res: Response): void => {
+  res.json((res as any)._responseData);
 };
 
 /**
