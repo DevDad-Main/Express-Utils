@@ -186,8 +186,41 @@ class DatabaseConnection {
 // Create a singleton instance
 const dbConnection = new DatabaseConnection();
 
-// Export the connect function and the instance
+/**
+ * Default export function to connect to MongoDB.
+ * Establishes a connection with automatic retry logic and reconnection handling.
+ * 
+ * @example
+ * import connectDB from './DatabaseConnection';
+ * await connectDB(); // Connects using MONGO_URI from environment
+ */
 export default dbConnection.connect.bind(dbConnection);
+
+/**
+ * Gets the current database connection status.
+ * 
+ * @returns {Object} Connection status information including:
+ * - isConnected: boolean - whether the database is connected
+ * - readyState: number - mongoose connection ready state
+ * - host: string - database host
+ * - name: string - database name
+ * - retryCount: number - current retry attempt count
+ * 
+ * @example
+ * import { getDBStatus } from './DatabaseConnection';
+ * const status = getDBStatus();
+ * console.log('DB connected:', status.isConnected);
+ */
 export const getDBStatus = dbConnection.getConnectionStatus.bind(dbConnection);
+
+/**
+ * Resets the connection state and attempts to reconnect.
+ * Useful for recovering from Docker container restarts or network issues.
+ * 
+ * @example
+ * import { resetDBConnection } from './DatabaseConnection';
+ * await resetDBConnection(); // Reset retry count and reconnect
+ */
 export const resetDBConnection = dbConnection.resetAndRetry.bind(dbConnection);
+
 export { DatabaseConnection };

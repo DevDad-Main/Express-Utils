@@ -1,5 +1,21 @@
 import winston from "winston";
 
+/**
+ * Winston logger instance for application logging.
+ * 
+ * Features:
+ * - Different log levels for production vs development
+ * - Console and file logging (in development)
+ * - JSON format for structured logging
+ * - Error stack trace capture
+ * - Custom service name via SERVICE_NAME environment variable
+ * 
+ * @example
+ * // Basic logging
+ * logger.info("User logged in", { userId: 123 });
+ * logger.error("Database connection failed", { error: err });
+ * logger.debug("Processing request", { method: "POST", url: "/api/users" });
+ */
 export const logger = winston.createLogger({
   level: process.env.NODE_ENV === "production" ? "info" : "debug",
   format: winston.format.combine(

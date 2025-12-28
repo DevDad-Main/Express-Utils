@@ -19,34 +19,34 @@ interface ErrorResponse {
  *
  * Features:
  * - Includes success: true field by default
- * - **Auto-sends** when no chaining detected (no send() needed)
- * - Returns Express response object for native method chaining
- * - Use send() only when chaining methods (.cookie(), .header(), etc.)
+ * - **Auto-sends** when no callbacks provided
+ * - Supports method chaining through callback functions
  * - Clean and predictable approach
  *
  * @param {Response} res - Express response object.
  * @param {any} data - Response data.
  * @param {string} [message='Success'] - Response message.
  * @param {number} [statusCode=200] - HTTP status code.
- * @returns {Response} The Express response object for chaining.
+ * @param {((res: Response) => Response)[]} [callbacks] - Optional array of callback functions for chaining response methods.
+ * @returns {Response} The Express response object.
  *
  * @example
- * // Basic usage (auto-sends - no send() needed)
+ * // Basic usage (auto-sends - no callbacks needed)
  * sendSuccess(res, { userId: 123 }, "Login successful");
  *
  * @example
- * // Chain methods and send manually
- * sendSuccess(res, { userId: 123 }, "Login successful", 200)
- *   .cookie("authToken", "xyz789", { httpOnly: true })
- *   .header("X-Custom", "value");
- * send(res); // Send prepared response
+ * // Chain methods using callbacks
+ * sendSuccess(res, { userId: 123 }, "Login successful", 200, [
+ *   (res) => res.cookie("authToken", "xyz789", { httpOnly: true }),
+ *   (res) => res.header("X-Custom", "value")
+ * ]);
  *
  * @example
- * // Example Login Response
- * sendSuccess(res, { accesstoken, refreshToken, user }, "Login Successful", 200)
- *   .cookie("accessToken", accesstoken, HTTP_OPTIONS)
- *   .cookie("refreshToken", refreshToken, HTTP_OPTIONS);
- * send(res); // Send when ready
+ * // Example Login Response with multiple callbacks
+ * sendSuccess(res, { accesstoken, refreshToken, user }, "Login Successful", 200, [
+ *   (res) => res.cookie("accessToken", accesstoken, HTTP_OPTIONS),
+ *   (res) => res.cookie("refreshToken", refreshToken, HTTP_OPTIONS)
+ * ]);
  */
 export const sendSuccess = (
   res: Response,
