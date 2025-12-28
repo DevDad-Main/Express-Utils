@@ -1,7 +1,7 @@
 // Example usage of the updated responseFormatter with intelligent auto-sending
 
-import { sendSuccess, sendError, send } from './src/responseFormatter';
-import { Response } from 'express';
+import { sendSuccess, sendError, send } from "./src/responseFormatter";
+import { Response } from "express";
 
 // Example 1: Basic error usage
 function basicError(res: Response) {
@@ -15,7 +15,7 @@ function successWithChaining(res: Response) {
   sendSuccess(res, { userId: 123 }, "Login successful", 200)
     .cookie("authToken", "xyz789", { httpOnly: true })
     .header("X-Custom-Header", "some-value");
-  
+
   // Send the prepared response
   send(res);
 }
@@ -28,47 +28,63 @@ function simpleSuccess(res: Response) {
 
 // Example 4: Error with additional data
 function errorWithData(res: Response) {
-  sendError(res, "Validation failed", 400, { 
-    errors: ["Email is required", "Password too short"] 
+  sendError(res, "Validation failed", 400, {
+    errors: ["Email is required", "Password too short"],
   });
 }
 
 // Example 5: Complex chaining scenario
 function complexChaining(res: Response) {
-  sendSuccess(res, { 
-    user: { id: 123, name: "John" },
-    token: "abc123xyz"
-  }, "Authentication successful", 201)
-    .cookie("session", "session-abc123", { 
-      httpOnly: true, 
-      secure: true, 
-      maxAge: 3600000 
+  sendSuccess(
+    res,
+    {
+      user: { id: 123, name: "John" },
+      token: "abc123xyz",
+    },
+    "Authentication successful",
+    201,
+  )
+    .cookie("session", "session-abc123", {
+      httpOnly: true,
+      secure: true,
+      maxAge: 3600000,
     })
     .header("X-Rate-Limit-Remaining", "99")
     .header("X-Response-Time", "45ms")
     .cookie("refreshToken", "refresh-abc123", {
       httpOnly: true,
       secure: true,
-      maxAge: 86400000 // 24 hours
+      maxAge: 86400000, // 24 hours
     });
-  
+
   // Send the prepared response
   send(res);
 }
 
-// Example 6: Login scenario (your exact use case)
-function loginResponse(res: Response, accesstoken: string, refreshToken: string, user: any, HTTP_OPTIONS: any) {
-  sendSuccess(res, {
-    accesstoken,
-    refreshToken,
-    user: {
-      username: user.username,
-      _id: user._id,
+// Example 6: Login scenario
+function loginResponse(
+  res: Response,
+  accesstoken: string,
+  refreshToken: string,
+  user: any,
+  HTTP_OPTIONS: any,
+) {
+  sendSuccess(
+    res,
+    {
+      accesstoken,
+      refreshToken,
+      user: {
+        username: user.username,
+        _id: user._id,
+      },
     },
-  }, "Login Successful", 200)
+    "Login Successful",
+    200,
+  )
     .cookie("accessToken", accesstoken, HTTP_OPTIONS)
     .cookie("refreshToken", refreshToken, HTTP_OPTIONS);
-  
+
   // Send the prepared response
   send(res);
 }
@@ -106,3 +122,4 @@ Usage Pattern:
 2. Chain native Express methods (.cookie, .header, etc.)
 3. Send with send() when ready
 */
+
