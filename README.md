@@ -54,10 +54,10 @@ throw new AppError("Validation failed", 400, ["Email is required"]);
 
 ### Response Formatting
 
-Standardize API responses with consistent JSON structure.
+Standardize API responses with consistent JSON structure and automatic response sending.
 
 ```typescript
-import { sendSuccess, sendError, sendPaginated } from "devdad-express-utils";
+import { sendSuccess, sendError } from "devdad-express-utils";
 
 // Success response
 sendSuccess(res, { id: 1, name: "John" }, "User fetched", 200);
@@ -66,9 +66,47 @@ sendSuccess(res, { id: 1, name: "John" }, "User fetched", 200);
 sendSuccess(res, { id: 1, name: "John" })
   .cookie("session", "abc123")
   .setHeader("X-Custom", "value");
+// Response sent automatically! 🎉
 
 // Error response
 sendError(res, "User not found", 404);
+```
+
+#### Response Format
+
+All responses include a `success` field by default:
+
+**Success Response:**
+
+```json
+{
+  "status": "success",
+  "success": true,
+  "message": "User fetched",
+  "data": { "id": 1, "name": "John" }
+}
+```
+
+**Error Response:**
+
+```json
+{
+  "status": "error",
+  "success": false,
+  "message": "User not found"
+}
+```
+
+#### Method Chaining
+
+`sendSuccess` returns the Express response object, allowing you to chain any Express response methods:
+
+```typescript
+sendSuccess(res, { token: "abc123" }, "Login successful", 200)
+  .cookie("authToken", "abc123", { httpOnly: true, secure: true })
+  .header("X-Rate-Limit-Remaining", "99")
+  .status(200); // Can even override status
+// Response automatically sent after chaining completes
 ```
 
 ### Database Connection
@@ -76,7 +114,11 @@ sendError(res, "User not found", 404);
 MongoDB connection utility with automatic reconnection, exponential backoff, and configurable retry logic.
 
 ```typescript
-import { connectDB, getDBStatus, resetDBConnection } from "devdad-express-utils";
+import {
+  connectDB,
+  getDBStatus,
+  resetDBConnection,
+} from "devdad-express-utils";
 
 // Connect to MongoDB (ensure MONGO_URI is set in environment)
 await connectDB();
@@ -215,19 +257,31 @@ errorHandler(err: any, req: Request, res: Response, next: NextFunction) => void
 
 ### sendSuccess
 
-Sends a standardized success response. Returns the Response object for method chaining.
+Sends a standardized success response with automatic sending after method chaining. Returns the Response object for chaining Express response methods like `.cookie()`, `.header()`, etc.
 
 ```typescript
 sendSuccess(res: Response, data: any, message?: string, statusCode?: number) => Response
 ```
 
+**Features:**
+
+- Includes `success: true` field by default
+- Automatically sends response after chaining completes
+- Supports all Express response method chaining
+- No extra `.send()` call needed
+
 ### sendError
 
-Sends a standardized error response.
+Sends a standardized error response immediately.
 
 ```typescript
 sendError(res: Response, message: string, statusCode?: number, data?: any) => void
 ```
+
+**Features:**
+
+- Includes `success: false` field by default
+- Sends response immediately (no chaining needed for errors)
 
 ### connectDB
 

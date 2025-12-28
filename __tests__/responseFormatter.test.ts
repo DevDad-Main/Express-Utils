@@ -4,7 +4,7 @@ import { Response } from "express";
 
 describe("responseFormatter", () => {
   describe("sendSuccess", () => {
-    it("should send success response and return response object for chaining", () => {
+    it("should prepare success response and return response object for chaining", async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn().mockReturnThis(),
@@ -13,15 +13,20 @@ describe("responseFormatter", () => {
       const result = sendSuccess(mockRes, { id: 1 }, "Success", 200);
 
       expect(mockRes.status).toHaveBeenCalledWith(200);
+      expect(result).toBe(mockRes); // Should return the response for chaining
+      
+      // Wait for setImmediate to trigger
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
       expect(mockRes.json).toHaveBeenCalledWith({
         status: "success",
+        success: true,
         message: "Success",
         data: { id: 1 },
       });
-      expect(result).toBe(mockRes); // Should return the response for chaining
     });
 
-    it("should allow chaining methods", () => {
+    it("should allow chaining methods and send final response", async () => {
       const mockRes = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn().mockReturnThis(),
@@ -36,6 +41,16 @@ describe("responseFormatter", () => {
       expect(result).toBe(mockRes);
       expect(mockRes.cookie).toHaveBeenCalledWith("session", "abc123");
       expect(mockRes.setHeader).toHaveBeenCalledWith("X-Custom", "value");
+      
+      // Wait for setImmediate to trigger
+      await new Promise(resolve => setTimeout(resolve, 0));
+      
+      expect(mockRes.json).toHaveBeenCalledWith({
+        status: "success",
+        success: true,
+        message: "Success",
+        data: { id: 1 },
+      });
     });
   });
 
@@ -51,6 +66,7 @@ describe("responseFormatter", () => {
       expect(mockRes.status).toHaveBeenCalledWith(400);
       expect(mockRes.json).toHaveBeenCalledWith({
         status: "error",
+        success: false,
         message: "Error message",
         data: { details: "extra" },
       });
